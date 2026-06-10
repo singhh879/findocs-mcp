@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-test-eval:
+    runs-on: ubuntu-latest
+
+    # Postgres + pgvector as a service container. The eval gate runs the real
+    # retrieval path against this DB — no mocks, no secrets, zero cost.
+    services:
+      db:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: findocs
+          POSTGRES_PASSWORD: findocs
+          POSTGRES_DB: findocs
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U findocs -d findocs"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      DATABASE_URL: postgres://findocs:findocs@localhost:5432/findocs
+      # Default providers: local embeddings + heuristic LLM => deterministic, no secrets.
+      EMBEDDINGS_PROVIDER: local
+      LLM_PROVIDER: heuristic
+      TRANSFORMERS_CACHE: .models
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      # Cache the transformers.js model so we don't re-download MiniLM each run.
+      - name: Cache embedding model
+        uses: actions/cache@v4
+        with:
+          path: .models
+          key: transformers-${{ runner.os }}-minilm-l6-v2
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Unit + integration tests
+        run: pnpm test
+
+      - name: Apply schema
+        run: pnpm migrate
+
+      - name: Ingest corpus
+        run: pnpm ingest
+
+      - name: Eval regression gate
+        run: pnpm eval:gate
+
+      - name: Upload eval results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-results
+          path: |
+            evals/results/*.json
+            evals/history.ndjson
+          if-no-files-found: ignore
