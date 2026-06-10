@@ -1,0 +1,10 @@
+{
+  "k": 5,
+  "thresholds": {
+    "recall_at_k": 0.92,
+    "mrr": 0.8,
+    "faithfulness": 0.8,
+    "refusal_accuracy": 0.9
+  },
+  "epsilon": 0.02
+}
