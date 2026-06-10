@@ -1,3 +1,4 @@
+// LEARN ▸ docs/learning/01-mcp-and-the-surface.md — how an agent calls these tools (MCP/stdio)
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";

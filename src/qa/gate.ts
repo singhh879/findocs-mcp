@@ -1,3 +1,4 @@
+// LEARN ▸ docs/learning/06-the-reliability-gate.md — refuse instead of hallucinating
 /**
  * Retrieval confidence gate — the reliability core.
  *

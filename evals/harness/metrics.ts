@@ -1,3 +1,4 @@
+// LEARN ▸ docs/learning/08-the-eval-loop.md — recall@k, MRR, faithfulness, refusal accuracy
 import type { CaseResult, Scorecard } from "./types.js";
 
 /** Mean of a list, 0 for an empty list. */

@@ -1,3 +1,4 @@
+// LEARN ▸ docs/learning/05-chunking-and-ingestion.md — why & how documents are split
 /**
  * Heading- and size-aware markdown chunking.
  *

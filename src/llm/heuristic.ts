@@ -1,3 +1,4 @@
+// LEARN ▸ docs/learning/07-grounded-synthesis-and-citations.md — extractive synthesis + groundedness judge
 import { contentTokens, coverage, splitSentences } from "../text.js";
 import type { JudgeResult, LLMProvider, RetrievedContext } from "./types.js";
 

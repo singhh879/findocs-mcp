@@ -1,3 +1,4 @@
+// LEARN ▸ docs/learning/10-typescript-and-architecture.md — parse/validate the boundary, trust the inside
 import { z } from "zod";
 
 /**

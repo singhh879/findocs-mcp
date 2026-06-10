@@ -1,3 +1,4 @@
+// LEARN ▸ docs/learning/03-embeddings.md — text → 384-dim unit vectors (mean pooling + L2 normalize)
 import { pipeline, env, type FeatureExtractionPipeline } from "@xenova/transformers";
 import type { Embedder } from "./types.js";
 

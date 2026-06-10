@@ -1,3 +1,4 @@
+# LEARN ▸ docs/learning/09-ci-regression-gate.md — how a metric drop fails the build
 name: CI
 
 on:

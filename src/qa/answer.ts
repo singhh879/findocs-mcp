@@ -1,3 +1,4 @@
+// LEARN ▸ docs/learning/02-the-answer-pipeline.md — retrieve → gate → synthesize → cite
 import { loadConfig } from "../config.js";
 import type { Sql } from "../db/client.js";
 import type { Embedder } from "../embeddings/index.js";

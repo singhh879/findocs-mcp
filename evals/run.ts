@@ -1,3 +1,4 @@
+// LEARN ▸ docs/learning/08-the-eval-loop.md — `pnpm eval` / `pnpm eval:gate` entry point
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";

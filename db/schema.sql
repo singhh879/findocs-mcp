@@ -1,3 +1,4 @@
+-- LEARN ▸ docs/learning/04-vector-search-cosine-pgvector-hnsw.md — vector column + HNSW cosine index
 -- FinDocs MCP schema: chunk store + vector index.
 -- Embedding dimension is 384 to match all-MiniLM-L6-v2 (the default local embedder).
 

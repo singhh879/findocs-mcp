@@ -1,3 +1,4 @@
+// LEARN ▸ docs/learning/04-vector-search-cosine-pgvector-hnsw.md — cosine search over pgvector
 import type { Sql } from "./client.js";
 
 /** A stored document chunk (without its embedding). */
