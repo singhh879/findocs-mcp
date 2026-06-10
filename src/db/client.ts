@@ -1,3 +1,11 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// LEARN ▼  L4 (plumbing) · the Postgres connection
+//
+// One postgres.js pool per process, created lazily. Nothing conceptual here — it's
+// the IO edge that repo.ts's pure-ish SQL functions run against. Keeping the client
+// behind getSql() means the rest of the code receives `sql` via DI and never imports
+// a global connection directly (easier to test, one place to configure).
+// ═══════════════════════════════════════════════════════════════════════════
 import postgres from "postgres";
 import { loadConfig } from "../config.js";
 

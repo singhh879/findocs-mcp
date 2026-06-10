@@ -1,4 +1,27 @@
-// LEARN ▸ docs/learning/05-chunking-and-ingestion.md — why & how documents are split
+// ═══════════════════════════════════════════════════════════════════════════
+// LEARN ▼  L5 · CHUNKING — why & how documents get split
+//
+// You don't embed a whole 5-page document as ONE vector. Two reasons:
+//   • Retrieval precision — one vector for a long doc averages many topics into a
+//     blurry point. Smaller chunks each capture one idea, so the right *passage*
+//     can rank highly for a specific question.
+//   • Grounding precision — the answer cites the chunk it used; smaller chunks =
+//     tighter, checkable citations and less irrelevant text fed to synthesis.
+// But too small loses the context that makes a chunk meaningful. Chunking is a
+// precision/context tradeoff; the unit of that tradeoff is SIZE + BOUNDARIES.
+//
+// GOOD BOUNDARIES: don't cut every N characters (that slices sentences/headings in
+// half). Split on document STRUCTURE (headings) first, then only window oversized
+// sections, with a small OVERLAP so a fact straddling a boundary still appears whole
+// in at least one chunk.
+//
+// DETERMINISM: this is a PURE function — same input → same chunks, every run. That
+// reproducibility is what makes retrieval evals comparable run to run, and it's what
+// lets ingest/pipeline.ts derive stable content-hash ids.
+//
+// Down the ladder ▼  next: src/ingest/pipeline.ts (chunk → embed → upsert).
+// ═══════════════════════════════════════════════════════════════════════════
+
 /**
  * Heading- and size-aware markdown chunking.
  *
@@ -20,6 +43,9 @@ export interface ChunkOptions {
   overlap: number;
 }
 
+// LEARN: these defaults are a retrieval-quality LEVER. Shrink maxChars and recall/MRR
+// (measured in evals/) shift — sometimes up (precision), sometimes down (lost
+// context). Tuning them is a measurable experiment, not a guess.
 export const DEFAULT_CHUNK_OPTIONS: ChunkOptions = {
   maxChars: 1200,
   overlap: 150,
@@ -46,6 +72,8 @@ function splitSections(markdown: string): Section[] {
   for (const line of lines) {
     const m = /^(#{1,6})\s+(.*)$/.exec(line);
     if (m) {
+      // LEARN: a heading line both ENDS the previous section and names the next —
+      // so each chunk inherits its nearest heading as a human-readable title.
       flush();
       heading = (m[2] ?? "").trim();
     } else {
@@ -61,6 +89,8 @@ function splitSections(markdown: string): Section[] {
  * boundaries so we don't slice mid-sentence when we can avoid it.
  */
 function windowBody(body: string, opts: ChunkOptions): string[] {
+  // LEARN: small section → one chunk, untouched. We only pay the windowing cost when
+  // a section actually exceeds the size budget.
   if (body.length <= opts.maxChars) return [body];
 
   const paras = body.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
@@ -70,7 +100,8 @@ function windowBody(body: string, opts: ChunkOptions): string[] {
   for (const para of paras) {
     if (current.length > 0 && current.length + para.length + 2 > opts.maxChars) {
       windows.push(current);
-      // Carry an overlap tail into the next window for context continuity.
+      // LEARN: carry an OVERLAP tail into the next window so context that spans the
+      // cut isn't lost — the boundary fact lives, intact, in both neighbours.
       const tail = current.slice(Math.max(0, current.length - opts.overlap));
       current = `${tail}\n\n${para}`;
     } else {

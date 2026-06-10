@@ -1,3 +1,11 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// LEARN ▼  AN MCP CLIENT — the other half of L0
+//
+// server.ts is the MCP server; THIS is a tiny MCP client. It spawns the built server
+// as a subprocess and calls listTools() — exactly what Claude does under the hood
+// when it connects. Reading both sides makes "what is MCP" concrete: a client, a
+// server, and JSON-RPC over stdio between them.
+// ═══════════════════════════════════════════════════════════════════════════
 /**
  * Smoke test: spawn the built MCP server over stdio and list its tools.
  * Verifies the MCP wiring end-to-end without needing a database (the DB

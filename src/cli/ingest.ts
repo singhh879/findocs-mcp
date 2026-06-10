@@ -1,3 +1,12 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// LEARN ▼  L5 (entry point) · the `pnpm ingest` CLI
+//
+// Thin wrapper that wires the real pieces together for a one-shot run: build the
+// services, load the corpus dir, ingest, report counts, close the pool. Same
+// ingestDocuments() the MCP ingest_doc tool and the eval setup use — one code path,
+// several entry points. Run order in practice: `pnpm migrate` (schema) then
+// `pnpm ingest` (fill it).
+// ═══════════════════════════════════════════════════════════════════════════
 import { fileURLToPath } from "node:url";
 import { dirname, join, resolve } from "node:path";
 import { closeSql, getSql } from "../db/client.js";
@@ -38,4 +47,6 @@ main()
     console.error("ingest failed:", err);
     process.exitCode = 1;
   })
+  // LEARN: always close the pool so the process exits — unlike the long-lived MCP
+  // server, a CLI must release its connection and terminate.
   .finally(() => closeSql());

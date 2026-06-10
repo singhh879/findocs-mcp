@@ -1,3 +1,13 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// LEARN ▼  L3 · THE EMBEDDINGS FACTORY (+ the exhaustiveness trick)
+//
+// Reads config, builds the configured Embedder, memoizes it. The `_exhaustive: never`
+// line is a TypeScript pattern worth stealing: in the default case we assign the
+// switch value to a `never`. If every case is handled, the value IS never and it
+// compiles. The day you add "openai" to the EMBEDDINGS_PROVIDER enum, this line stops
+// compiling until you add the case — the compiler forces completeness. Same pattern
+// in llm/index.ts.
+// ═══════════════════════════════════════════════════════════════════════════
 import { loadConfig } from "../config.js";
 import type { Embedder } from "./types.js";
 import { LocalEmbedder } from "./local.js";

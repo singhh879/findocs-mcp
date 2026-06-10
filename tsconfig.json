@@ -6,10 +6,17 @@
     "lib": ["ES2022"],
     "types": ["node"],
 
+    // LEARN ▼ L10 · Reliability starts at COMPILE TIME. These strict flags turn whole
+    // classes of bugs into type errors before the code ever runs.
     "strict": true,
+    // arr[i] is typed `T | undefined` — you're forced to handle "what if it's missing?"
+    // (this is why you see `?? []`, `if (!vec) throw` across the codebase).
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
+    // no accidental switch fall-through (the gate/factory switches rely on this).
     "noFallthroughCasesInSwitch": true,
+    // `x?: string` means absent-or-string, NOT string|undefined — made the zod
+    // boundaries (evals/run.ts, ingest/load.ts) explicit about omit-vs-value.
     "exactOptionalPropertyTypes": true,
     "noImplicitReturns": true,
     "forceConsistentCasingInFileNames": true,

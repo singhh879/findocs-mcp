@@ -1,3 +1,11 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// LEARN ▼  L4 (setup) · `pnpm db:wait` — race-free startup
+//
+// A freshly-started Postgres container accepts connections a moment AFTER `docker
+// compose up` returns. This polls `SELECT 1` until it succeeds, so `migrate`/`ingest`
+// don't fail on a not-quite-ready DB. (CI uses the service container's healthcheck
+// for the same reason.)
+// ═══════════════════════════════════════════════════════════════════════════
 import { getSql, closeSql } from "../src/db/client.js";
 
 /** Poll the database until it accepts connections (used after `db:up`). */

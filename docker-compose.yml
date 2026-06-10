@@ -1,3 +1,6 @@
+# LEARN ▼ L4 (infra) · the pgvector database for local dev. `pnpm db:up` starts this;
+# the pgvector/pgvector image is plain Postgres 16 with the vector extension preinstalled
+# (db/schema.sql still runs CREATE EXTENSION). CI uses the same image as a service container.
 services:
   db:
     image: pgvector/pgvector:pg16

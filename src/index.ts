@@ -1,3 +1,12 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// LEARN ▼  the public library surface (a "barrel")
+//
+// Re-exports the pieces a consumer of findocs-mcp-as-a-library would import. It's a
+// map of the package: skim it to see the building blocks (search, answer, gate,
+// ingest, embedder, llm) without opening every folder. The MCP server is the app;
+// this is the library face of the same code.
+// ═══════════════════════════════════════════════════════════════════════════
+
 /** Public library surface for findocs-mcp. */
 export { loadConfig, type AppConfig } from "./config.js";
 export { createServices, type Services } from "./services.js";

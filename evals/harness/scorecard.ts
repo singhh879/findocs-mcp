@@ -1,3 +1,14 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// LEARN ▼  L8 · REPORT & REMEMBER — the scorecard and the score-over-time trail
+//
+// Two outputs from each run:
+//   • A full RunArtifact → evals/results/{timestamp}.json. It contains the scorecard
+//     AND every per-case outcome (what was retrieved, refused, grounded score). That
+//     file is your debugging microscope — sort by recall===0 to find retrieval
+//     misses, by (type===negative && !refused) to find leaks.
+//   • One compact aggregate line appended to evals/history.ndjson — the SCORE-OVER-
+//     TIME trail, so you can plot the eval curve improving as you tune the system.
+// ═══════════════════════════════════════════════════════════════════════════
 import { appendFile, mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import type { CaseResult, Scorecard } from "./types.js";
@@ -33,6 +44,8 @@ export function formatScorecard(card: Scorecard, meta: RunMeta): string {
   const lines = rows.map(([label, value]) => `  ${label.padEnd(width)}  ${value}`);
   return [
     "Eval scorecard",
+    // LEARN: stamping the embedder + llm ids means a score is always attributable to
+    // the exact providers that produced it (heuristic vs ollama, which model).
     `  embedder=${meta.embedderId}  llm=${meta.llmId}`,
     `  cases=${card.counts.total} (positive=${card.counts.positive}, negative=${card.counts.negative}, answered=${card.counts.answered})`,
     "",
@@ -55,6 +68,8 @@ export async function persistRun(
   await writeFile(outPath, JSON.stringify(artifact, null, 2), "utf8");
 
   await mkdir(dirname(historyPath), { recursive: true });
+  // LEARN: NDJSON (one JSON object per line) is append-only and trivially streamable —
+  // perfect for an ever-growing history you might later chart.
   const historyLine =
     JSON.stringify({
       timestamp: artifact.timestamp,

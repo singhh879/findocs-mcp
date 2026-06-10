@@ -17,11 +17,11 @@ This is the "tick-data validation, zero production mis-fires" discipline from qu
 trading infrastructure, applied to AI tooling: **a confident wrong answer is worse
 than an honest "not found."**
 
-> 📚 **Want to understand it deeply, not just run it?** [`LEARNING.md`](LEARNING.md) is a
-> guided *reverse-learning* layer: start at the surface (an agent calls a tool) and descend
-> rung by rung — MCP → retrieval → embeddings → cosine/pgvector/HNSW → chunking → the
-> refusal gate → eval metrics → CI → strict-TS — down to the linear algebra at the bottom.
-> Every concept is tied to the exact code, with "trace it / break it" experiments.
+> 📚 **Learning the codebase?** The source is written as a *reverse-learning layer*: read
+> it top-down from [`src/mcp/server.ts`](src/mcp/server.ts) (where an agent calls in) and
+> follow the `▼ LEARN` comment blocks down through retrieval, embeddings, cosine/pgvector,
+> chunking, the refusal gate, and the eval-loop — to the linear algebra at the bottom.
+> Each concept is taught inline, right where it's implemented.
 
 ---
 

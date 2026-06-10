@@ -1,4 +1,22 @@
-// LEARN ▸ docs/learning/08-the-eval-loop.md — recall@k, MRR, faithfulness, refusal accuracy
+// ═══════════════════════════════════════════════════════════════════════════
+// LEARN ▼  L8 · EVAL METRICS — how you put a number on a RAG system
+//
+// You can't improve what you can't measure. A RAG system has TWO things to measure,
+// and they fail differently:
+//   RETRIEVAL  — did we fetch the right chunks?
+//     • recall@k — of the expected docs, what fraction appear in the top-k? ("did we
+//       even fetch it?")  Binary 0/1 when there's a single expected doc.
+//     • MRR (Mean Reciprocal Rank) — how HIGHLY was the first relevant doc ranked?
+//       rank1→1.0, rank2→0.5, rank3→0.33… ("did we rank it well?")
+//   GENERATION — given the chunks, did we answer well?
+//     • faithfulness — is the answer supported by the context? (LLM-as-judge, L7)
+//     • refusal accuracy — answer positives, refuse negatives? ("did we know when to
+//       stay quiet?")  Over-refusing and under-refusing are BOTH wrong.
+//
+// recall@k and MRR are classic information-retrieval metrics; faithfulness and
+// refusal are the LLM-era additions. Together they cover the whole pipeline. All
+// pure functions → worked examples live in test/metrics.test.ts.
+// ═══════════════════════════════════════════════════════════════════════════
 import type { CaseResult, Scorecard } from "./types.js";
 
 /** Mean of a list, 0 for an empty list. */
@@ -31,6 +49,9 @@ export function reciprocalRank(
   retrieved: readonly string[],
   expected: readonly string[],
 ): number {
+  // LEARN: walk the ranked list; the position of the FIRST relevant hit determines
+  // the score. This is why recall@5 can be 1 (it's in there somewhere) while MRR is
+  // low (it was ranked 5th) — the two metrics measure different failures.
   const want = new Set(expected);
   for (let i = 0; i < retrieved.length; i++) {
     const id = retrieved[i];
@@ -55,6 +76,9 @@ export function refusalCorrect(type: CaseResult["type"], refused: boolean): bool
  * function just averages over the relevant subset.
  */
 export function aggregate(results: readonly CaseResult[]): Scorecard {
+  // LEARN: each metric is averaged over the SUBSET it applies to — retrieval metrics
+  // over positives, faithfulness over ANSWERED positives, refusal accuracy over ALL
+  // cases (positives + negatives). Mixing those subsets up is a common eval bug.
   const positives = results.filter((r) => r.type === "positive");
   const negatives = results.filter((r) => r.type === "negative");
   const answeredPositives = positives.filter((r) => !r.refused);

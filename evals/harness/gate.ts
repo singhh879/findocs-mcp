@@ -1,3 +1,16 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// LEARN ▼  L8/L9 · THE REGRESSION GATE — metrics are useless if nobody enforces them
+//
+// A baseline file (evals/baseline.json) stores a threshold per metric. After a run,
+// checkGate compares the scorecard to the baseline and FAILS (returns pass:false,
+// and run.ts sets a non-zero exit code) if ANY metric dropped below its threshold —
+// minus a tiny epsilon so floating-point jitter doesn't flip the gate. Wire that into
+// CI (.github/workflows/ci.yml) and a quality regression CANNOT merge.
+//
+// This is "tick-data validation, zero mis-fires" applied to AI: the build is the
+// safety net. To raise the bar over time, improve something and then RAISE the
+// baseline — the gate ratchets quality upward. Tested in test/gate.test.ts.
+// ═══════════════════════════════════════════════════════════════════════════
 import type { Baseline, Scorecard } from "./types.js";
 
 export interface GateFailure {
@@ -25,6 +38,8 @@ export function checkGate(card: Scorecard, baseline: Baseline): GateOutcome {
   ];
   const failures: GateFailure[] = [];
   for (const [metric, actual, threshold] of checks) {
+    // LEARN: the `- epsilon` slack distinguishes "real regression" from "0.001 of
+    // numerical noise". Set epsilon too high and you stop catching small real drops.
     if (actual < threshold - baseline.epsilon) {
       failures.push({ metric, actual, threshold });
     }

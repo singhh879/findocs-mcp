@@ -1,4 +1,25 @@
-// LEARN ▸ docs/learning/01-mcp-and-the-surface.md — how an agent calls these tools (MCP/stdio)
+// ═══════════════════════════════════════════════════════════════════════════
+// LEARN ▼  L0–L1 · THE SURFACE — MCP & stdio   (start your descent here)
+//
+// This is the very top of the system: the part an AI agent (Claude Desktop /
+// Claude Code) actually talks to. Before any embedding or SQL exists, *something*
+// has to let the model call answer_question("..."). That something is MCP.
+//
+// MCP (Model Context Protocol) = "USB for AI tools". You implement a small server
+// that advertises a list of tools; any MCP-aware client can discover and call
+// them. Three ideas do all the work:
+//   1. TRANSPORT — stdio. The client spawns this file as a subprocess and
+//      exchanges JSON-RPC 2.0 messages over stdin/stdout. GOLDEN RULE: never
+//      write to stdout except protocol messages — a stray console.log corrupts
+//      the stream. All logs go to stderr (see log() below).
+//   2. DISCOVERY — on connect, the client asks "what tools?"; we answer with each
+//      tool's name + description + input JSON Schema. The model reads those to
+//      decide WHEN and HOW to call. Good descriptions are part of the product.
+//   3. INVOCATION — the client sends {name, arguments}; the SDK validates the
+//      args against the schema BEFORE our handler runs, then we return `content`.
+//
+// Down the ladder ▼  next: src/services.ts + src/qa/answer.ts (the pipeline).
+// ═══════════════════════════════════════════════════════════════════════════
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
@@ -10,21 +31,31 @@ import { answerQuestion } from "../qa/answer.js";
 import { ingestDocuments } from "../ingest/pipeline.js";
 import { documentFromText, documentFromUrl, type SourceDocument } from "../ingest/load.js";
 
-// NOTE: stdout is the MCP protocol channel — never write to it. Logs go to stderr.
+// LEARN: stdout is the MCP protocol channel — never write to it. Logs go to stderr.
+// Try it: change this to process.stdout.write, rebuild, run `pnpm smoke` → it breaks.
 function log(msg: string): void {
   process.stderr.write(`[findocs-mcp] ${msg}\n`);
 }
 
+// LEARN: an MCP tool result is a list of `content` blocks. We return one text
+// block containing JSON — the model reads the JSON we hand back, nothing else.
 function jsonResult(payload: unknown): { content: { type: "text"; text: string }[] } {
   return { content: [{ type: "text", text: JSON.stringify(payload, null, 2) }] };
 }
 
 async function main(): Promise<void> {
   const cfg = loadConfig();
+  // LEARN: createServices() builds {sql, embedder, llm} but does NOT connect to
+  // Postgres or load the embedding model — those are lazy. That's why this server
+  // (and `pnpm smoke`) starts instantly with no database running.
   const services = createServices();
 
   const server = new McpServer({ name: "findocs-mcp", version: "0.1.0" });
 
+  // LEARN: registerTool(name, config, handler). The `inputSchema` is a zod "raw
+  // shape" {field: zodType}. The SDK (a) turns it into JSON Schema for the wire so
+  // the model knows the argument shape, and (b) validates incoming args, handing
+  // the handler a fully-typed object. One source of truth: validation + docs.
   server.registerTool(
     "search_docs",
     {
@@ -60,6 +91,9 @@ async function main(): Promise<void> {
     },
   );
 
+  // LEARN: the flagship tool. Everything interesting (retrieval → confidence gate →
+  // grounded synthesis → citations, or refusal) lives behind this one call, in
+  // src/qa/answer.ts. The model just sees a question in and a cited answer out.
   server.registerTool(
     "answer_question",
     {
@@ -77,6 +111,9 @@ async function main(): Promise<void> {
     },
   );
 
+  // LEARN: tools can have side effects. ingest_doc writes to the DB. Note we accept
+  // EITHER a url OR text (zod marks both optional) and enforce "at least one" in the
+  // handler — schemas express shape; business rules still live in code.
   server.registerTool(
     "ingest_doc",
     {
@@ -107,6 +144,8 @@ async function main(): Promise<void> {
     },
   );
 
+  // LEARN: this single line binds the JSON-RPC request/response loop to stdin/stdout.
+  // After connect(), the SDK handles initialize/tools-list/tools-call framing for us.
   const transport = new StdioServerTransport();
   await server.connect(transport);
   log(`ready — provider embeddings=${services.embedder.id} llm=${services.llm.id}`);

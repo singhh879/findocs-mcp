@@ -1,4 +1,14 @@
-# LEARN ▸ docs/learning/09-ci-regression-gate.md — how a metric drop fails the build
+# ═══════════════════════════════════════════════════════════════════════════════
+# LEARN ▼  L9 · THE CI REGRESSION GATE — a gate nobody pulls is decoration
+#
+# This runs the whole pipeline on a clean machine on every push/PR, against a REAL
+# Postgres+pgvector (a "service container") with the zero-cost deterministic providers
+# (local embedder + heuristic LLM) — so the result depends only on your code and the
+# fixed corpus, no secrets, no flakiness. The steps below are just L0–L8 in order:
+# typecheck → test → migrate → ingest → eval:gate. If eval:gate exits non-zero (a
+# metric regressed), the build is red and — with branch protection — the merge is
+# blocked. THAT is what "regressions cannot reach main" means.
+# ═══════════════════════════════════════════════════════════════════════════════
 name: CI
 
 on:

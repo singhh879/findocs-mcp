@@ -1,7 +1,21 @@
-/**
- * Small, dependency-free text utilities shared by the heuristic LLM provider and
- * the eval harness. Pure and deterministic so they can be unit-tested directly.
- */
+// ═══════════════════════════════════════════════════════════════════════════
+// LEARN ▼  L7 (primitives) · TEXT MATH — tokens, sentences, overlap
+//
+// Small, dependency-free, PURE building blocks used by the heuristic synthesizer
+// and judge. Worth reading because they make "is this sentence relevant / supported"
+// concrete and measurable:
+//   • tokenize / contentTokens — turn prose into comparable word sets (drop
+//     punctuation and stopwords so "the"/"is" don't dominate similarity).
+//   • jaccard   — set similarity: |A∩B| / |A∪B|. Symmetric "how alike are two sets".
+//   • coverage  — ASYMMETRIC support: "how much of A is contained in B". This is the
+//     primitive behind groundedness (how much of an answer sentence is backed by a
+//     context) and extractive relevance (how much of the question a sentence covers).
+//
+// These are token-overlap heuristics — transparent and fast, but blind to MEANING
+// (they can be fooled by shared words with reversed sense). That limitation is
+// exactly why the project also has embeddings (semantic) and why faithfulness is one
+// metric among several. Pure functions → tested directly in test/text.test.ts.
+// ═══════════════════════════════════════════════════════════════════════════
 
 const STOPWORDS = new Set([
   "the", "a", "an", "and", "or", "of", "to", "in", "on", "for", "is", "are",
@@ -28,7 +42,7 @@ export function splitSentences(text: string): string[] {
     .filter((s) => s.length > 0);
 }
 
-/** Jaccard similarity between two token sets. */
+/** Jaccard similarity between two token sets: |A∩B| / |A∪B|. */
 export function jaccard(a: Iterable<string>, b: Iterable<string>): number {
   const sa = new Set(a);
   const sb = new Set(b);

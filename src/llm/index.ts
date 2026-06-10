@@ -1,3 +1,11 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// LEARN ▼  L7 · THE LLM FACTORY — where "which provider" is decided (once)
+//
+// The factory reads config and returns the configured LLMProvider. Note the
+// exhaustive-switch guard `const _exhaustive: never = ...`: if you add a provider to
+// the LLM_PROVIDER enum (config.ts) but forget to handle it here, the code FAILS TO
+// COMPILE. Types enforcing completeness — see the same trick in embeddings/index.ts.
+// ═══════════════════════════════════════════════════════════════════════════
 import { loadConfig } from "../config.js";
 import type { LLMProvider } from "./types.js";
 import { HeuristicProvider } from "./heuristic.js";

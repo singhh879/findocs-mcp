@@ -1,4 +1,13 @@
-// LEARN ▸ docs/learning/08-the-eval-loop.md — `pnpm eval` / `pnpm eval:gate` entry point
+// ═══════════════════════════════════════════════════════════════════════════
+// LEARN ▼  L8 · THE EVAL ENTRY POINT — `pnpm eval` and `pnpm eval:gate`
+//
+// Ties the harness together: load + VALIDATE the dataset and baseline (zod, so bad
+// data fails loudly), build services, run the dataset against the real pgvector
+// path, print the scorecard, persist the artifact + history line. With `--gate` it
+// additionally runs checkGate and sets a non-zero EXIT CODE on regression — that
+// exit code is what makes CI go red. (No DB? `scripts/calibrate.ts` runs the same
+// scoring in-memory with no Postgres.)
+// ═══════════════════════════════════════════════════════════════════════════
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -14,6 +23,8 @@ import { formatScorecard, persistRun, type RunArtifact } from "./harness/scoreca
 import { checkGate, formatGate } from "./harness/gate.js";
 import type { Baseline, EvalCase } from "./harness/types.js";
 
+// LEARN: validate the dataset at the boundary (same rule as config.ts). A typo in
+// dataset.jsonl becomes a clear error, not a silently-skewed score.
 const EvalCaseSchema = z.object({
   id: z.string().min(1),
   question: z.string().min(1),
@@ -64,6 +75,8 @@ async function main(): Promise<void> {
   const k = baseline.k || cfg.SEARCH_TOP_K;
   const services = createServices();
 
+  // LEARN: fail fast if the corpus is empty — a 0% score from "nothing ingested" is a
+  // setup bug, not a quality regression, and we don't want to confuse the two.
   const chunks = await countChunks(services.sql);
   if (chunks === 0) {
     throw new Error("corpus is empty — run `pnpm migrate` then `pnpm ingest` first");
@@ -89,6 +102,8 @@ async function main(): Promise<void> {
   console.log(`\nWrote ${outPath}`);
 
   if (gateMode) {
+    // LEARN: this is the whole point — a regression sets process.exitCode = 1, which
+    // fails the CI step and (with branch protection) blocks the merge.
     const outcome = checkGate(card, baseline);
     console.log("\n" + formatGate(outcome));
     if (!outcome.pass) process.exitCode = 1;

@@ -1,3 +1,17 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// LEARN ▼  L8 · THE RUNNER — execute the labeled dataset against the REAL system
+//
+// The crucial design choice: this reuses the PRODUCTION functions (searchDocs,
+// answerQuestion) rather than a parallel copy. So the eval measures the actual
+// system an agent would use — not a stand-in that can drift from reality.
+//
+// Per case it gathers:
+//   • retrieval  — top-k docIds → recall@k and reciprocal rank (same ranking used to
+//     answer; positives only have meaningful expected_sources)
+//   • refusal    — did answerQuestion refuse? (correct iff negative)
+//   • faithfulness — for ANSWERED positives, ask llm.judge() how grounded the answer
+//     is in the same contexts it was built from
+// ═══════════════════════════════════════════════════════════════════════════
 import type { Sql } from "../../src/db/client.js";
 import type { Embedder } from "../../src/embeddings/index.js";
 import type { LLMProvider, RetrievedContext } from "../../src/llm/index.js";
@@ -27,13 +41,18 @@ export async function runEval(
   const results: CaseResult[] = [];
 
   for (const c of cases) {
+    // LEARN: retrieve once for the retrieval metrics...
     const hits = await searchDocs(deps, c.question, k);
     const retrievedDocIds = hits.map((h) => h.docId);
 
+    // ...and run the full QA pipeline (which gates + maybe synthesizes) for the
+    // generation metrics. Same code an agent hits in production.
     const answer = await answerQuestion(deps, c.question, { k });
 
     let grounded: number | null = null;
     if (c.type === "positive" && !answer.refused) {
+      // LEARN: judge faithfulness against the SAME contexts the answer was built
+      // from. grounded stays null for refusals/negatives (nothing was asserted).
       const contexts: RetrievedContext[] = hits.map((h) => ({
         id: h.id,
         title: h.title,

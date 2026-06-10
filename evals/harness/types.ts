@@ -1,3 +1,14 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// LEARN ▼  L8 · THE EVAL DATA MODEL (ground truth in, scorecard out)
+//
+// EvalCase is one labeled row from dataset.jsonl: a question + the expected
+// supporting doc id(s) + a type. POSITIVE = answerable from the corpus (right doc
+// must be retrieved, answer given). NEGATIVE = out-of-corpus (the system MUST
+// refuse). Without negatives you cannot measure refusal — so they're a deliberate,
+// first-class part of the set. `expected_sources` are docIds like "zerodha/gtt",
+// which is exactly what loadCorpusDir derives from the file path (L5).
+// ═══════════════════════════════════════════════════════════════════════════
+
 /** One labeled evaluation case from evals/dataset.jsonl. */
 export interface EvalCase {
   id: string;

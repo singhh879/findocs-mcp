@@ -1,3 +1,17 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// LEARN ▼  L5 · LOADING SOURCES — corpus files, raw text, and URLs
+//
+// Everything that gets ingested is normalized into one shape: SourceDocument
+// {docId, source, title, url, markdown}. Three entry points build it:
+//   • loadCorpusDir() — walk corpus/*.md, parse tiny frontmatter, derive docId from
+//     the file path (e.g. "zerodha/gtt"). That docId is what the eval set's
+//     `expected_sources` match against — so the corpus layout IS the eval contract.
+//   • documentFromText() — inline text (the ingest_doc MCP tool, text form).
+//   • documentFromUrl()  — fetch + crude HTML→text (the ingest_doc tool, url form).
+//
+// The corpus is VENDORED (committed) on purpose: evals must score against a fixed,
+// offline set, or "did retrieval get better?" becomes unanswerable.
+// ═══════════════════════════════════════════════════════════════════════════
 import { readdir, readFile } from "node:fs/promises";
 import { join, relative, sep } from "node:path";
 
@@ -52,6 +66,8 @@ async function walkMarkdown(dir: string): Promise<string[]> {
 
 /** Load every `*.md` under `dir` as a SourceDocument, honoring frontmatter. */
 export async function loadCorpusDir(dir: string): Promise<SourceDocument[]> {
+  // LEARN: sort the files so ingestion order is deterministic (one more reproducibility
+  // guarantee — ord/ids don't depend on filesystem iteration order).
   const files = (await walkMarkdown(dir)).sort();
   const docs: SourceDocument[] = [];
   for (const file of files) {
@@ -59,6 +75,8 @@ export async function loadCorpusDir(dir: string): Promise<SourceDocument[]> {
     const { data, body } = parseFrontmatter(raw);
     const relPath = relative(dir, file).replace(/\.md$/, "");
     const parts = relPath.split(sep);
+    // LEARN: docId defaults to the path ("zerodha/gtt") — the same string the eval
+    // dataset lists in expected_sources. This is the join between corpus and evals.
     const docId = data.doc_id ?? relPath.split(sep).join("/");
     const source = data.source ?? parts[0] ?? "corpus";
     const title = data.title ?? deriveTitle(body) ?? docId;
@@ -125,7 +143,9 @@ function slugify(s: string): string {
     .slice(0, 80);
 }
 
-/** Crude HTML → text: drop scripts/styles/tags, collapse whitespace. */
+// LEARN: deliberately CRUDE HTML→text. A real product would use a proper extractor;
+// for a demo corpus, dropping scripts/styles/tags and collapsing whitespace is enough
+// to get usable text to chunk. Knowing where a shortcut lives is part of reading code.
 function htmlToText(html: string): string {
   return html
     .replace(/<script[\s\S]*?<\/script>/gi, " ")

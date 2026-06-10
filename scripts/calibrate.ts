@@ -1,3 +1,13 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// LEARN ▼  THE NO-DATABASE LEARNING TOOL — run the whole pipeline in memory
+//
+// This is the fastest way to SEE every layer at once with zero setup (no Docker, no
+// keys). It embeds the corpus, cosine-ranks in memory with a 3-line dot(), runs the
+// confidence gate, synthesizes + judges, and prints the same scorecard `pnpm eval`
+// produces — plus MISS/LEAK lines and the positive-vs-negative similarity gap that
+// justifies the gate threshold. Read it next to qa/answer.ts: it's the same four
+// steps. Best "break it" sandbox in the repo.
+// ═══════════════════════════════════════════════════════════════════════════
 /**
  * Offline eval / calibration utility — NO database required.
  *
