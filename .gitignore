@@ -1,0 +1,19 @@
+node_modules/
+dist/
+*.log
+
+# Local env
+.env
+.env.local
+
+# Transformers.js model cache (downloaded at runtime)
+.cache/
+.models/
+
+# Eval run artifacts (keep dataset, baseline, and history; ignore per-run dumps)
+evals/results/*.json
+!evals/results/.gitkeep
+
+# OS
+.DS_Store
+Thumbs.db

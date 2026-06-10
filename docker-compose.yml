@@ -1,0 +1,21 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: findocs-pgvector
+    environment:
+      POSTGRES_USER: findocs
+      POSTGRES_PASSWORD: findocs
+      POSTGRES_DB: findocs
+    # Host port 5433 avoids clashing with a local Postgres on 5432.
+    ports:
+      - "5433:5432"
+    volumes:
+      - findocs_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U findocs -d findocs"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  findocs_pgdata:
