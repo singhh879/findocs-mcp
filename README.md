@@ -4,7 +4,7 @@
 > Q&A over a financial-docs corpus — Postgres + pgvector for retrieval, a
 > first-class eval-loop that **fails CI on regression**.
 
-![CI](https://github.com/OWNER/findocs-mcp/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/singhh879/findocs-mcp/actions/workflows/ci.yml/badge.svg)
 
 FinDocs MCP gives an AI agent three tools over [MCP](https://modelcontextprotocol.io):
 search a corpus of broker API documentation (Zerodha Kite Connect + Finvasia
